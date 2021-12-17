@@ -105,6 +105,8 @@ class Charmpp(Package):
     variant("tracing", default=False, description="Enable tracing modules")
 
     depends_on("cmake@3.4.0:", when="@7.0.0:", type='build' )
+    depends_on("autoconf", when="@:6.99.99", type='build' ) # Anything pre-7.0.
+    depends_on("automake", when="@:6.99.99", type='build' )
 
     depends_on("mpi", when="backend=mpi")
     depends_on("papi", when="+papi")
@@ -124,10 +126,8 @@ class Charmpp(Package):
     depends_on("mpi", when="pmi=simplepmi")
     depends_on("mpi", when="pmi=slurmpmi")
     depends_on("mpi", when="pmi=slurmpmi2")
-
-    # Git versions of Charm++ require automake and autoconf
-    depends_on("automake", when="@develop")
-    depends_on("autoconf", when="@develop")
+    # If pmi is not specified, simplepmi will be used for ofi.
+    depends_on("mpi", when="backend=ofi")
 
     conflicts("~tracing", "+papi")
 
@@ -216,7 +216,7 @@ class Charmpp(Package):
 
     def setup_build_environment(self, env):
         if ("backend=ofi") in self.spec:
-            env.set('LIBFABRIC', spec['libfabric'].prefix)
+            env.set('LIBFABRIC', self.spec['libfabric'].prefix)
 
     # FIXME: backend=mpi also provides mpi, but spack does not support
     # depends_on("mpi") and provides("mpi") in the same package currently.
@@ -236,15 +236,6 @@ class Charmpp(Package):
                                     available on the Netlrts and MPI \
                                     network layers.")
 
-        if ("backend=ucx" in self.spec) or \
-           ("backend=ofi" in self.spec) or \
-           ("backend=gni" in self.spec):
-            if ("pmi=none" in self.spec):
-                raise InstallError("The UCX/OFI/GNI backends need \
-                                    PMI to run. Please add pmi=... \
-                                    Note that PMIx is the preferred \
-                                    option.")
-
         if ("pmi=simplepmi" in self.spec) or \
            ("pmi=slurmpmi" in self.spec) or \
            ("pmi=slurmpmi2" in self.spec):
@@ -260,7 +251,7 @@ class Charmpp(Package):
         # We assume that Spack's compiler wrappers make this work. If
         # not, then we need to query the compiler vendor from Spack
         # here.
-        if spec.satisfies('@7.0.0:') and "shasta" in platform.platform():
+        if spec.satisfies('@6.8.2:') and "shasta" in platform.platform():
             options = [ ]
         else:
             options = [
