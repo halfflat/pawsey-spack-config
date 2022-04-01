@@ -33,8 +33,8 @@ packages:
 #    buildable: false
 # FFTW non buildable, to avoid proliferation of variants, 
 # that are ultimately a subset of the system-wide one (env_num_libs)
-  fftw-api:
-    buildable: false
+#  fftw-api:
+#    buildable: false
   pkgconfig:
     buildable: false
 # don't build compilers neither
@@ -564,4 +564,12 @@ packages:
 # 2. if specified without ^python@3.9.7, would be used also with the wrong python versions
 # therefore, taken out
 # available in examples/joey_sprint/configs/packages.yaml up to commit bfef602ee1e7f5ae7bdb5c6b5120f116df4bea18
+
+# Restricted permissions for group-access limited licensed software
+
+# Note: vasp version 6 has a different required group - this will be overriden in the customized recipe.
+  vasp:
+    permissions:
+      read: group
+      group: vasp
 
